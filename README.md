@@ -2,7 +2,7 @@
 This is a localized web app for school (just keeping it here)
 You must set-up the database firsthand
 
-**Individual Health and Fitness Data Tracking System prototype.**
+Individual Health and Fitness Data Tracking System prototype.
 
 ## Stack
 - Python / Flask
