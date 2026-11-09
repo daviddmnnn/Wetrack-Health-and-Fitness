@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Report & Feedback — WeTrack{% endblock %}
+{% block heading %}Report & Feedback{% endblock %}
+{% block content %}
+<div class="page-intro"><span class="tag">REPORT / FEEDBACK</span><h2>Send a message to the developers</h2><p>For this prototype, your message is simply stored in the WeTrack database. No developer or administrator access level is required yet.</p></div>
+<div class="content-two">
+<form method="POST" class="panel form-panel"><div class="section-title"><h3>New message</h3><span class="spark">✉</span></div>
+<label>Type<select name="type"><option>Report</option><option>Feedback</option></select></label>
+<label>Subject<input name="subject" maxlength="150" placeholder="e.g. Dashboard issue" required></label>
+<label>Message<textarea name="message" rows="8" placeholder="Describe the problem or feedback..." required></textarea></label>
+<button class="primary-btn">Submit message →</button></form>
+<section class="panel"><div class="panel-head"><div><span class="tag">YOUR MESSAGES</span><h3>Submission history</h3></div></div>
+<div class="report-list">{% for r in reports %}<article class="report-card"><div class="report-top"><span class="goal-type">{{ r.type }}</span><span class="status-pill">{{ r.status }}</span></div><h3>{{ r.subject }}</h3><p>{{ r.message }}</p><small>{{ r.dateSubmitted }}</small></article>{% else %}<div class="empty">You have not submitted a report or feedback yet.</div>{% endfor %}</div></section>
+</div>
+{% endblock %}

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+
+<html lang="en" data-theme="{% if current_user %}dark{% else %}auth{% endif %}">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231d8f88'/%3E%3Ctext x='32' y='46' font-size='44' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold'%3EW%3C/text%3E%3C/svg%3E">
+
+    <title>{% block title %}WeTrack{% endblock %}</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</head>
+
+<body{% if not current_user %} class="auth-fixed"{% endif %}>
+
+<div class="bg-orb orb-one"></div>
+<div class="bg-orb orb-two"></div>
+
+<div class="app-shell">
+
+{% if current_user %}
+
+<aside class="sidebar" id="sidebar">
+
+    <div class="brand">
+        <div class="brand-mark">W</div>
+        <div>
+            <strong>WeTrack</strong>
+            <span>Health & Fitness</span>
+        </div>
+    </div>
+
+    <nav>
+
+        <a href="{{ url_for('dashboard') }}" class="{% if request.endpoint=='dashboard' %}active{% endif %}">
+            <span>⌂</span> Dashboard
+        </a>
+
+        <a href="{{ url_for('profile') }}" class="{% if request.endpoint=='profile' %}active{% endif %}">
+            <span>◉</span> My Information
+        </a>
+
+        <a href="{{ url_for('activities_page') }}" class="{% if request.endpoint=='activities_page' %}active{% endif %}">
+            <span>↗</span> Fitness Log
+        </a>
+
+        <a href="{{ url_for('diet_page') }}" class="{% if request.endpoint=='diet_page' %}active{% endif %}">
+            <span>◌</span> Diet Tracker
+        </a>
+
+        <a href="{{ url_for('sleep_page') }}" class="{% if request.endpoint=='sleep_page' %}active{% endif %}">
+            <span>☾</span> Sleep Log
+        </a>
+
+        <a href="{{ url_for('prediction') }}" class="{% if request.endpoint=='prediction' %}active{% endif %}">
+            <span>⌁</span> Health Prediction
+        </a>
+
+        <a href="{{ url_for('goals_page') }}" class="{% if request.endpoint=='goals_page' or request.endpoint=='update_goal' %}active{% endif %}">
+            <span>◎</span> Goal
+        </a>
+
+        <a href="{{ url_for('plans_page') }}" class="{% if request.endpoint=='plans_page' or request.endpoint=='complete_plan' %}active{% endif %}">
+            <span>▣</span> Exercise Plan
+        </a>
+
+        <a href="{{ url_for('reports_page') }}" class="{% if request.endpoint=='reports_page' %}active{% endif %}">
+            <span>✉</span> Report
+        </a>
+
+        <a href="{{ url_for('about') }}" class="{% if request.endpoint=='about' %}active{% endif %}">
+            <span>ⓘ</span> About Us
+        </a>
+
+        <a href="{{ url_for('security_settings') }}" class="{% if request.endpoint=='security_settings' %}active{% endif %}">
+            <span>⚙</span> Security Settings
+        </a>
+
+    </nav>
+
+</aside>
+
+{% endif %}
+
+<main class="main-content {% if not current_user %}full{% endif %}">
+
+{% if current_user %}
+
+<header class="topbar">
+
+    <button class="mobile-menu" onclick="document.getElementById('sidebar').classList.toggle('open')">
+        ☰
+    </button>
+
+    <div>
+        <div class="eyebrow">INDIVIDUAL HEALTH & FITNESS DATA</div>
+        <h1>{% block heading %}Hello, {{ current_user.firstname }}{% endblock %}</h1>
+    </div>
+
+    <div class="topbar-actions">
+
+        <div class="user-chip">
+
+            <div class="avatar">
+
+                {% if current_user.profilePicture %}
+
+                    <img
+                        src="{{ url_for('static', filename='uploads/profile_pictures/' ~ current_user.profilePicture) }}"
+                        alt="Profile picture"
+                        style="width:100%; height:100%; object-fit:cover; border-radius:50%;"
+                    >
+
+                {% else %}
+
+                    {{ current_user.firstname[0] }}{{ current_user.lastname[0] }}
+
+                {% endif %}
+
+            </div>
+
+            <div>
+                <b>{{ current_user.username }}</b>
+                <small>{{ current_user.accountID }}</small>
+            </div>
+
+        </div>
+
+        <div class="topbar-theme" aria-label="Theme options">
+
+            <span>Theme</span>
+
+            <button type="button" data-theme-choice="dark" onclick="setTheme('dark')">
+                Dark
+            </button>
+
+            <button type="button" data-theme-choice="green" onclick="setTheme('green')">
+                Green & White
+            </button>
+
+            <button type="button" data-theme-choice="light" onclick="setTheme('light')">
+                Light
+            </button>
+
+        </div>
+
+        <button class="topbar-logout" type="button" data-open-dialog="logoutDialog">↪ Logout</button>
+
+    </div>
+
+</header>
+
+{% endif %}
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+
+    {% if messages %}
+
+        <div class="toast-stack">
+
+            {% for category, message in messages %}
+
+                <div class="toast {{ category }}">
+                    {{ message }}
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    {% endif %}
+
+{% endwith %}
+
+{% block content %}{% endblock %}
+
+</main><dialog class="confirm-dialog" id="logoutDialog"><div class="modal-head"><h3>Log out?</h3><button class="modal-close" type="button" aria-label="Close">×</button></div><p>Are you sure you want to logout?</p><div class="modal-actions"><button class="secondary-btn modal-cancel" type="button">Cancel</button><form method="POST" action="{{ url_for('logout') }}"><button class="primary-btn" type="submit">Yes, log out</button></form></div></dialog>
+
+</div>
+
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+
+{% block scripts %}{% endblock %}
+
+</body>
+
+</html>
+

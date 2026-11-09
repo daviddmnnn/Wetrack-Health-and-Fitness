@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% block title %}Diet Tracker — WeTrack{% endblock %}
+{% block heading %}Diet Tracker{% endblock %}
+
+{% block content %}
+<div class="page-intro">
+    <span class="tag">NUTRITION</span>
+    <h2>Log what you eat</h2>
+    <p>Build today's meals first, review everything you have eaten, then save the whole list to your records.</p>
+</div>
+
+<div class="content-two diet-builder-layout">
+    <form method="POST" class="panel form-panel">
+        <div class="section-title">
+            <h3>Add food to today's meals</h3>
+            <span class="spark">◌</span>
+        </div>
+
+        <input type="hidden" name="action" value="add">
+
+        <label>Search food
+            <input id="foodSearch" type="search" placeholder="Type to find a food...">
+        </label>
+
+        <label>Food
+            <select name="foodID" id="foodID" required>
+                {% for f in foods %}
+                <option value="{{ f.foodID }}" data-cal="{{ f.caloriesPerUnit }}" data-unit="{{ f.servingUnit }}">
+                    {{ f.foodName }} — {{ f.foodGroup }} · {{ f.caloriesPerUnit|round(0) }} kcal/{{ f.servingUnit }}
+                </option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <div class="form-grid">
+            <label>Meal type
+                <select name="mealType">
+                    <option>Breakfast</option>
+                    <option>Lunch</option>
+                    <option>Dinner</option>
+                    <option>Snack</option>
+                </select>
+            </label>
+            <label>Quantity
+                <input id="quantity" type="number" name="quantity" min="0.1" step="0.1" value="1" required>
+            </label>
+            <label>Date
+                <input type="date" name="logDate" value="{{ today }}" min="{{ today }}" max="{{ today }}" required>
+            </label>
+        </div>
+
+        <div class="calorie-preview">
+            <span>Current food</span>
+            <strong id="calPreview">— kcal</strong>
+            <small>Today's list: <b>{{ builder_total|round(0) }} kcal</b></small>
+        </div>
+
+        <label>Notes
+            <textarea name="notes" rows="2" placeholder="Optional note for this food..."></textarea>
+        </label>
+
+        <button class="primary-btn" type="submit">+ Add to Meal</button>
+    </form>
+
+    <section class="panel today-meals-panel">
+        <div class="panel-head">
+            <div>
+                <span class="tag">TODAY'S MEALS</span>
+                <h3>{{ today }}</h3>
+            </div>
+            <strong class="today-total">{{ today_total|round(0) }} kcal</strong>
+        </div>
+
+        <div class="today-list-scroll">
+        {% if builder["items"] %}
+        <div class="meal-builder-card">
+            <div class="builder-title">
+                <span>Not saved yet</span>
+                <b>{{ builder_total|round(0) }} kcal</b>
+            </div>
+            {% for item in builder["items"] %}
+            <div class="builder-row">
+                <div>
+                    <b>{{ item.foodName }}</b>
+                    <small>{{ item.mealType }} · {{ item.quantity }} {{ item.servingUnit }} · {{ item.calories|round(0) }} kcal</small>
+                </div>
+                <form method="POST">
+                    <input type="hidden" name="action" value="remove">
+                    <input type="hidden" name="index" value="{{ loop.index0 }}">
+                    <button class="icon-delete" type="submit" title="Remove">×</button>
+                </form>
+            </div>
+            {% endfor %}
+            <div class="builder-actions">
+                <form method="POST">
+                    <input type="hidden" name="action" value="clear">
+                    <button class="secondary-btn" type="submit">Clear List</button>
+                </form>
+                <form method="POST">
+                    <input type="hidden" name="action" value="save">
+                    <button class="primary-btn" type="submit">Save All Meals</button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if today_meals %}
+            <div class="today-meal-list">
+            {% for meal in today_meals %}
+                <div class="today-meal-group">
+                    <div class="today-meal-heading">
+                        <b>{{ meal.mealType }}</b>
+                        <span>{{ meal.subtotal|round(0) }} kcal</span>
+                    </div>
+                    {% for item in meal["items"] %}
+                    <div class="today-food-row">
+                        <div>
+                            <b>{{ item.foodName }}</b>
+                            <small>{{ item.quantity }} {{ item.servingUnit }}{% if item.notes %} · {{ item.notes }}{% endif %}</small>
+                        </div>
+                        <span>{{ item.calories|round(0) }} kcal</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+            </div>
+        {% else %}
+            <div class="today-empty">
+                <div class="empty-icon">🍽</div>
+                <b>No meals logged today.</b>
+                <span>Add the foods you have eaten above. Your saved list will appear here.</span>
+            </div>
+        {% endif %}
+
+        </div>
+        <div class="today-summary">
+            <span>Today's total</span>
+            <strong>{{ today_total|round(0) }} kcal</strong>
+        </div>
+    </section>
+</div>
+
+<section class="panel table-panel">
+    <div class="panel-head">
+        <div>
+            <span class="tag">HISTORY</span>
+            <h3>Meal records</h3>
+        </div>
+        <span class="muted-text">Previous days remain saved here.</span>
+    </div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr><th>Date</th><th>Meal</th><th>Food</th><th>Calories</th><th></th></tr>
+            </thead>
+            <tbody>
+            {% for d in logs %}
+                <tr>
+                    <td>{{ d.logDate }}</td>
+                    <td>{{ d.mealType }}</td>
+                    <td><b>{{ d.foodName }}</b><small>{{ d.quantity }} {{ d.servingUnit }}</small></td>
+                    <td>{{ d.calories|round(0) }} kcal</td>
+                    <td>
+                        <form method="POST" action="{{ url_for('delete_diet', diet_id=d.dietID) }}">
+                            <button class="icon-delete" type="submit">×</button>
+                        </form>
+                    </td>
+                </tr>
+            {% else %}
+                <tr><td colspan="5" class="empty">No diet records.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>setupDietPreview();</script>
+{% endblock %}
+
+
